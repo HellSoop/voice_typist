@@ -26,6 +26,9 @@ def record_and_write():
 
 
 keyboard.add_hotkey('ctrl+alt', record_and_write)
+print('Model ready to work!')
 
+# Terminate
 keyboard.wait('alt+s')
 audio.terminate()
+print('Model terminated')
