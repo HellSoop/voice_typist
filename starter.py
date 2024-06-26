@@ -1,3 +1,4 @@
+import sys
 import subprocess as sp
 import keyboard
 from threading import Thread
@@ -6,7 +7,7 @@ from PIL import Image
 
 
 def run_main():
-    process = sp.Popen('main.py', shell=True, stdout=sp.PIPE, stderr=sp.STDOUT, text=True)
+    process = sp.Popen([sys.executable, 'main.py'], stdout=sp.PIPE, stderr=sp.STDOUT, text=True)
     run_main.process = process
 
     for stdout_line in process.stdout:
@@ -33,12 +34,18 @@ def change_running_status(status: bool):
             change_running_status.blocked = True
 
 
+def close_app():
+    if run_main.process is not None:
+        run_main.process.terminate()
+    icon.stop()
+
+
 run_main.process = None
 change_running_status.blocked = False
 change_running_status.running = False
 
 menu = Menu(
-    MenuItem('Exit', lambda: icon.stop())
+    MenuItem('Exit', close_app),
 )
 img = Image.open(r'logo.jpg')
 icon = Icon('Voice Typist', icon=img, menu=menu)
