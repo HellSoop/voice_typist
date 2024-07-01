@@ -9,18 +9,20 @@ from PIL import Image
 
 # model functions
 def run_main() -> None:
-    process = sp.Popen([sys.executable, 'main.py'], stdout=sp.PIPE, stderr=sp.STDOUT, text=True)
+    process = sp.Popen([sys.executable, '-u', 'main.py'], stdout=sp.PIPE, stderr=sp.STDOUT, text=True)
     run_main.process = process
 
     for stdout_line in process.stdout:
         stdout_line = stdout_line.strip()
-        if stdout_line in ('Model ready to work!', 'Model terminated'):
+        if stdout_line == 'Model ready to work!':
+            change_running_status.blocked = False
             create_short_notification(stdout_line)
-            if stdout_line == 'Model ready to work!':
-                change_running_status.blocked = False
 
-    process.stdout.close()
-    run_main.process = None
+    else:
+        process.stdout.close()
+        run_main.process = None
+        change_running_status(False)
+        create_short_notification('Model terminated')
 
 
 def start_main_thread() -> None:
@@ -45,7 +47,7 @@ change_running_status.running = False
 # icon functions
 def create_short_notification(text: str) -> None:
     icon.notify(text)
-    sleep(1.7)
+    sleep(1.2)
     icon.remove_notification()
 
 
@@ -64,5 +66,4 @@ icon = Icon('Voice Typist', icon=img, menu=menu)
 
 if __name__ == '__main__':
     keyboard.add_hotkey('alt+a', start_main_thread)
-    keyboard.add_hotkey('alt+s', change_running_status, args=(False,))
     icon.run()
