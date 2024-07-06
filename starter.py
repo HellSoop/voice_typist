@@ -14,9 +14,11 @@ def run_main() -> None:
 
     for stdout_line in process.stdout:
         stdout_line = stdout_line.strip()
-        if stdout_line == 'Model ready to work!':
+        if stdout_line == 'Model is ready to work!':
             change_running_status.blocked = False
             create_short_notification(stdout_line)
+        elif stdout_line == 'Model terminated':
+            create_short_notification('Model is closing...', 0.7)
 
     else:
         process.stdout.close()
@@ -27,9 +29,9 @@ def run_main() -> None:
 
 def start_main_thread() -> None:
     if not change_running_status.running:
-        Thread(target=run_main, daemon=True).start()
         change_running_status(True)
-        create_short_notification('Model is starting...')
+        Thread(target=run_main, daemon=True).start()
+        create_short_notification('Model is starting...', 0.7)
 
 
 def change_running_status(status: bool) -> None:
@@ -45,10 +47,14 @@ change_running_status.running = False
 
 
 # icon functions
-def create_short_notification(text: str) -> None:
-    icon.notify(text)
-    sleep(1.2)
+def notify_short(text: str, timeout: int | float = 1.1) -> None:
+    icon.notify(text, title='Voice Typist')
+    sleep(timeout)
     icon.remove_notification()
+
+
+def create_short_notification(text: str, timeout: int | float = 1.1) -> None:
+    Thread(target=notify_short, args=(text, timeout), daemon=True).start()
 
 
 def close_app():
@@ -65,5 +71,5 @@ img = Image.open(r'logo.jpg')
 icon = Icon('Voice Typist', icon=img, menu=menu)
 
 if __name__ == '__main__':
-    keyboard.add_hotkey('alt+a', start_main_thread)
+    keyboard.add_hotkey('alt+a', start_main_thread, suppress=True)
     icon.run()
